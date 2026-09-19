@@ -100,31 +100,147 @@ graph LR
 
 ## 3. Instalación y Configuración
 
-### 3.1 Entorno Virtual y Dependencias
+### 3.1 Requisitos Previos y Entorno por Sistema Operativo
 
+El proyecto requiere **Python 3.10 o superior** y **Docker / Docker Compose** para ejecutar el servicio PostgreSQL con `pgvector`. A continuación se detallan las instrucciones para cada plataforma:
+
+#### 🐧 Linux
+
+##### Arch Linux
 ```bash
+# 1. Instalar paquetes base (Python, Docker y Git)
+sudo pacman -S python python-pip docker docker-compose git
+
+# 2. Habilitar e iniciar el demonio de Docker
+sudo systemctl enable --now docker
+
+# 3. (Opcional) Agregar tu usuario al grupo docker para evitar requerir sudo
+sudo usermod -aG docker $USER
+# Aplica el nuevo grupo en tu sesión actual:
+newgrp docker
+
+# 4. Crear y activar el entorno virtual
 python -m venv .venv
 source .venv/bin/activate
+
+# 5. Instalar dependencias
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+##### Ubuntu / Debian
+```bash
+# 1. Instalar paquetes necesarios
+sudo apt update
+sudo apt install -y python3 python3-venv python3-pip docker.io docker-compose-v2 git
+
+# 2. Habilitar e iniciar Docker
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
+
+# 3. Crear y activar entorno virtual
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 4. Instalar dependencias
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+##### Fedora
+```bash
+# 1. Instalar paquetes base
+sudo dnf install -y python3 python3-pip docker docker-compose git
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
+
+# 2. Crear entorno virtual y activar
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 3. Instalar dependencias
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+#### 🍏 macOS (Apple Silicon / Intel)
+
+```bash
+# 1. Instalar Homebrew (si no está instalado) y paquetes base
+brew install python git
+
+# 2. Instalar Docker Desktop para macOS
+brew install --cask docker
+# Abre Docker Desktop desde la carpeta de Aplicaciones y espera a que el servicio inicialice.
+
+# 3. Crear y activar el entorno virtual
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 4. Instalar dependencias
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+#### 🪟 Windows (PowerShell / WSL2)
+
+Se recomienda el uso de **PowerShell 7** o la terminal integrada de Windows, junto con **Docker Desktop** (con backend WSL2 habilitado).
+
+##### Opción A: Nativo en Windows con PowerShell
+```powershell
+# 1. Instalar Python, Git y Docker Desktop (mediante winget)
+winget install Python.Python.3.12
+winget install Docker.DockerDesktop
+winget install Git.Git
+
+# 2. Permitir la ejecución de scripts en la sesión actual de PowerShell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+# 3. Crear el entorno virtual
+python -m venv .venv
+
+# 4. Activar el entorno virtual en PowerShell
+.venv\Scripts\Activate.ps1
+# (En caso de usar el Símbolo del sistema / CMD clásico: .venv\Scripts\activate.bat)
+
+# 5. Instalar dependencias
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+##### Opción B: Usando WSL2 (Ubuntu en Windows)
+Si trabajas dentro de WSL2, abre tu terminal WSL (`wsl`) y sigue las instrucciones descritas en la sección de **Linux (Ubuntu / Debian)**.
+
+---
+
 ### 3.2 Base de Datos PostgreSQL con pgvector
+
+Una vez que el motor de Docker esté en ejecución, levanta el contenedor con la base de datos y la extensión vectorial:
 
 ```bash
 docker compose up -d
 docker compose ps
 ```
+*(El comando es idéntico en Linux, macOS y Windows PowerShell/CMD).*
 
 ### 3.3 Configuración del archivo `.env`
 
-Copia el archivo de ejemplo:
+Copia la plantilla de variables de entorno según tu sistema operativo:
 
-```bash
-cp .env.example .env
-```
+- **Linux / macOS**:
+  ```bash
+  cp .env.example .env
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  Copy-Item .env.example .env
+  ```
+- **Windows (CMD)**:
+  ```cmd
+  copy .env.example .env
+  ```
 
-Configura tus credenciales en `.env`:
+Configura tus credenciales en el archivo `.env`:
 ```dotenv
 NVIDIA_API_KEY=<tu-clave-de-nvidia>
 OPENAI_BASE_URL=https://integrate.api.nvidia.com/v1
