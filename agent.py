@@ -308,24 +308,9 @@ def responder(client: OpenAI, searcher: FAQSearcher, messages: list[dict[str, An
 
 
 def main() -> None:
-    # La configuración del proyecto debe prevalecer sobre variables antiguas
-    # definidas en Windows o heredadas de otros ejercicios. La ruta se resuelve
-    # junto a este script para permitir ejecutarlo desde cualquier directorio.
-    env_path = Path(__file__).resolve().parent / ".env"
-    if not env_path.is_file():
-        sys.exit(f"Error de configuración: no se encontró {env_path}")
-    load_dotenv(env_path, override=True)
-    try:
-        settings = Settings.from_env()
-        client = OpenAI(
-            api_key=settings.api_key,
-            base_url=settings.base_url,
-            timeout=120.0,
-            max_retries=1,
-        )
-        searcher = FAQSearcher(settings)
-    except RuntimeError as error:
-        sys.exit(f"Error de configuración: {error}")
+    import arch_centralizada
+    arch_centralizada.main()
+
 
     print("Asistente de Parachute S.A. — escriba 'Bye' para terminar.")
     messages: list[dict[str, Any]] = [{"role": "system", "content": SYSTEM_PROMPT}]
