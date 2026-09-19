@@ -268,6 +268,8 @@ python main.py smoke-test
 
 ### 4.3 Ejecución del Chat en las Tres Arquitecturas
 
+Puedes iniciar una sesión interactiva en cualquiera de las tres arquitecturas:
+
 - **Arquitectura Centralizada (predeterminada)**:
   ```bash
   python main.py chat --arquitectura centralizada
@@ -283,8 +285,44 @@ python main.py smoke-test
 
 *Nota: También puedes ejecutar directamente `python arch_centralizada.py`, `python arch_jerarquica.py` o `python arch_descentralizada.py`.*
 
+#### 🧪 Simulación de Escenarios Meteorológicos con `--mock-clima`
+Para probar determinísticamente los guardarraíles sin depender del clima real del día:
+```bash
+# Simular condiciones óptimas (viento bajo, despejado, sin lluvia)
+python main.py chat --arquitectura centralizada --mock-clima ideal
+
+# Simular condiciones de riesgo (lluvia o viento fuerte que veta la reserva)
+python main.py chat --arquitectura centralizada --mock-clima prohibido
+```
+
+#### 💬 Ejemplos de Preguntas y Flujos para Probar
+
+A continuación se presentan consultas sugeridas para validar la especialización de cada agente, las transferencias de control y los guardarraíles del sistema:
+
+##### 1. Conocimiento y Políticas (FAQs RAG)
+Prueba la recuperación semántica sobre la base de 120 preguntas frecuentes:
+- *"¿Cuáles son los requisitos de peso y edad mínima para realizar un salto tándem?"*
+- *"¿Qué tipo de ropa y calzado recomiendan llevar el día de la actividad?"*
+- *"¿Qué certificaciones tienen los instructores y qué incluye el seguro de salto?"*
+
+##### 2. Evaluación Meteorológica y Reglas de Seguridad
+Prueba la consulta a Open-Meteo y el evaluador determinista en Python (`core/safety.py`):
+- *"¿Es seguro saltar mañana? ¿Cómo estarán el viento y la nubosidad en la zona de salto?"*
+- *"¿Se puede saltar el próximo sábado en la mañana en las coordenadas del evento?"*
+- *"¿Qué sucede si hay ráfagas de viento mayores a 30 km/h el día de mi salto?"*
+
+##### 3. Flujo Integrado: Consulta de Clima + Reserva de Cita
+Prueba la coordinación completa: el sistema evalúa el clima y, solo si es viable, reserva en PostgreSQL:
+- *"Hola, quiero agendar un salto para mañana a las 10:00 a nombre de Diego Calderón (correo: diego@example.com, tel: 5555-1234). ¿Las condiciones climáticas lo permiten?"*
+- *"¿Hay cupos disponibles para pasado mañana entre las 09:00 y las 12:00? Si el clima es apto, resérvame a las 11:00 para María López (maria@example.com, tel: 4444-1234)."*
+
+##### 4. Control de Límites y Preguntas Fuera de Dominio
+Prueba que los agentes no alucinen ni desvíen su propósito:
+- *"¿Me pueden vender un boleto de avión comercial hacia Flores, Petén?"* (debe declinar amablemente y enfocarse en saltos de paracaidismo de Parachute S.A.).
+- *"¿Cuál es la receta para preparar un pastel de chocolate?"*
+
 ### 4.4 Pruebas Automatizadas
-Ejecuta la suite completa de 39 pruebas unitarias y de integración (casos frontera de seguridad, fechas relativas, concurrencia de reservas y aislamiento de FAQs):
+Ejecuta la suite completa de 40 pruebas unitarias y de integración (casos frontera de seguridad, fechas relativas, concurrencia de reservas y aislamiento de FAQs):
 ```bash
 pytest tests/
 ```
