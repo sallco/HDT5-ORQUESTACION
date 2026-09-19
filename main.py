@@ -25,8 +25,12 @@ def parse_arguments(arguments: Sequence[str] | None = None) -> argparse.Namespac
     # 2. Comando smoke-test (validación de modelos y herramientas)
     commands.add_parser("smoke-test", help="Ejecuta la prueba de humo del proveedor NVIDIA con fallback.")
 
-    # 3. Comando chat (conversación interactiva en terminal)
+    # 3. Comando benchmark (evaluación comparativa)
+    commands.add_parser("benchmark", help="Ejecuta la matriz comparativa de rendimiento entre las 3 arquitecturas.")
+
+    # 4. Comando chat (conversación interactiva en terminal)
     chat_parser = commands.add_parser("chat", help="Inicia el agente conversacional interactivo.")
+
     chat_parser.add_argument(
         "--arquitectura",
         choices=["centralizada", "jerarquica", "descentralizada"],
@@ -62,7 +66,11 @@ def main(arguments: Sequence[str] | None = None) -> None:
         load_faqs.main(parsed_arguments.loader_arguments)
     elif parsed_arguments.command == "smoke-test":
         smoke_test.main()
+    elif parsed_arguments.command == "benchmark":
+        import benchmark_arquitecturas
+        benchmark_arquitecturas.main()
     elif parsed_arguments.command == "chat":
+
         arq = parsed_arguments.arquitectura
         if arq == "centralizada":
             arch_centralizada.main()
