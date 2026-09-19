@@ -7,6 +7,8 @@ Implementa **tres arquitecturas de orquestación** sobre una capa compartida de 
 2. **Jerárquica**: Un orquestador raíz que coordina supervisores de dominio (`Conocimiento` y `Operaciones`), los cuales a su vez coordinan agentes hoja.
 3. **Descentralizada**: Red de agentes pares que se transfieren el control entre sí mediante `handoff()`, preservando contexto sin un coordinador central.
 
+> 📄 **Informe técnico completo (PDF):** [`docs/Hoja de trabajo 5 - Orquestación.pdf`](docs/Hoja%20de%20trabajo%205%20-%20Orquestaci%C3%B3n.pdf) *(análisis comparativo, métricas y respuestas a preguntas de diseño)*. Ver [previsualización abajo](#5-documentación-e-informe-técnico).
+
 ---
 
 ## 1. Arquitecturas de Orquestación
@@ -333,3 +335,22 @@ Ejecuta la matriz comparativa de latencia y respuestas:
 python main.py benchmark
 ```
 Los resultados observados se almacenan en `data/comparativa_arquitecturas.json`.
+
+---
+
+## 5. Documentación e Informe Técnico
+
+El informe académico formal de la práctica, con las respuestas fundamentadas a las preguntas de diseño, el análisis crítico de desempeño y los diagramas de flujo, se encuentra disponible en formato PDF en la carpeta `docs/`:
+
+- 📄 **Documento completo:** [docs/Hoja de trabajo 5 - Orquestación.pdf](docs/Hoja%20de%20trabajo%205%20-%20Orquestaci%C3%B3n.pdf)
+
+### Previsualización del Informe
+
+<p align="center">
+  <a href="docs/Hoja%20de%20trabajo%205%20-%20Orquestaci%C3%B3n.pdf" title="Clic para abrir el PDF">
+    <img src="docs/preview_informe.png" alt="Previsualización del Informe Técnico PDF" width="750"/>
+  </a>
+  <br/>
+  <em>Haz clic en la imagen superior para abrir o descargar el documento PDF completo (4 páginas).</em>
+</p>
+
