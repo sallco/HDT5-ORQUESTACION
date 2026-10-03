@@ -8,6 +8,7 @@ import sys
 from agents import Agent, Runner
 from core.llm import create_model
 from core.tools import (
+    iniciar_traza_herramientas,
     limpiar_ultimo_comprobante,
     obtener_ultimo_comprobante,
     tool_agendar_cita,
@@ -110,6 +111,7 @@ async def ejecutar_turno_centralizado(
 ) -> tuple[str, str | None]:
     """Ejecuta un turno en la arquitectura centralizada y retorna (respuesta_llm, comprobante)."""
     limpiar_ultimo_comprobante()
+    iniciar_traza_herramientas()
     resultado = await Runner.run(orquestador, entrada_usuario, max_turns=20)
     respuesta = resultado.final_output_as(str)
     comprobante = obtener_ultimo_comprobante()
