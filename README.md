@@ -336,6 +336,43 @@ python main.py benchmark
 ```
 Los resultados observados se almacenan en `data/comparativa_arquitecturas.json`.
 
+### 4.6 Evals con Promptfoo
+
+La branch `evals` incluye una suite de Promptfoo para la arquitectura centralizada.
+Evalúa las dos capacidades del producto: respuestas de FAQs y calendarización con
+validación meteorológica. La suite usa fixtures `ideal`, `marginal` y `prohibido`
+para que los resultados no dependan de la red ni del estado cambiante de Open-Meteo.
+La evidencia meteorológica es válida durante el turno evaluado y la agenda vuelve a
+validar fecha, evidencia y veredicto antes de guardar una cita.
+
+Requisitos: Node.js 20 o superior, Python con las dependencias del proyecto,
+PostgreSQL cargado y un modelo NVIDIA que haya superado `smoke-test`.
+
+```bash
+npm ci
+npm run eval:ci
+```
+
+Promptfoo ejecuta el proveedor Python con el intérprete del sistema por defecto.
+Si las dependencias Python están en un entorno virtual, indique explícitamente
+ese intérprete antes de ejecutar la evaluación:
+
+```bash
+PROMPTFOO_PYTHON=.venv/bin/python npm run eval:ci
+```
+
+El reporte se genera en `evals/results/promptfoo.json`. Para abrir la vista local:
+
+```bash
+npm run eval:view
+```
+
+Los casos incluyen factualidad, assertions `contains` y `regex`, latencia inferior
+a 30 segundos y verificación de las herramientas realmente ejecutadas. Las reservas
+ideales y marginales deben confirmarse; una reserva prohibida debe ser rechazada sin
+invocar `agendar_cita`. El reporte no debe generarse con el modelo de visión anterior
+ni con un modelo que no haya pasado los cuatro pasos de la prueba de humo.
+
 ---
 
 ## 5. Documentación e Informe Técnico
@@ -353,4 +390,3 @@ El informe académico formal de la práctica, con las respuestas fundamentadas a
   <br/>
   <em>Haz clic en la imagen superior para abrir o descargar el documento PDF completo (4 páginas).</em>
 </p>
-
