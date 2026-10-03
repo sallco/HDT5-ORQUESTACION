@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import json
+from contextvars import ContextVar
+from dataclasses import dataclass, field
+from functools import wraps
+from time import perf_counter
 from typing import Any
 
 from agents import function_tool
@@ -23,6 +27,91 @@ _date_resolver = DateResolver()
 _ULTIMO_COMPROBANTE: str | None = None
 
 
+@dataclass
+class RegistroHerramienta:
+    nombre: str
+    argumentos: dict[str, Any] = field(default_factory=dict)
+    exitosa: bool = True
+    duracion_ms: float = 0.0
+    error: str | None = None
+    resultado: Any = None
+
+
+_TRAZA_HERRAMIENTAS: ContextVar[list[RegistroHerramienta] | None] = ContextVar(
+    "traza_herramientas", default=None
+)
+_EVAL_MOCK_CLIMA: ContextVar[str | None] = ContextVar("eval_mock_clima", default=None)
+
+
+def iniciar_traza_herramientas() -> None:
+    _TRAZA_HERRAMIENTAS.set([])
+
+
+def obtener_traza_herramientas() -> list[dict[str, Any]]:
+    traza = _TRAZA_HERRAMIENTAS.get() or []
+    return [
+        {
+            "nombre": item.nombre,
+            "argumentos": item.argumentos,
+            "exitosa": item.exitosa,
+            "duracion_ms": round(item.duracion_ms, 2),
+            "error": item.error,
+            "resultado": item.resultado,
+        }
+        for item in traza
+    ]
+
+
+def establecer_mock_clima(modo: str | None) -> None:
+    _EVAL_MOCK_CLIMA.set(modo or None)
+
+
+def _registrar_herramienta(
+    nombre: str,
+    argumentos: dict[str, Any],
+    inicio: float,
+    resultado: Any = None,
+    error: Exception | None = None,
+) -> None:
+    traza = _TRAZA_HERRAMIENTAS.get()
+    if traza is None:
+        return
+    traza.append(
+        RegistroHerramienta(
+            nombre=nombre,
+            argumentos={key: str(value) for key, value in argumentos.items()},
+            exitosa=error is None,
+            duracion_ms=(perf_counter() - inicio) * 1000,
+            error=str(error) if error else None,
+            resultado=resultado,
+        )
+    )
+
+
+def instrumentar_herramienta(nombre: str):
+    """Registra la ejecución real de una herramienta cuando hay una traza activa."""
+
+    def decorador(func):
+        @wraps(func)
+        def envoltura(*args, **kwargs):
+            inicio = perf_counter()
+            argumentos = {
+                **{str(index): value for index, value in enumerate(args)},
+                **kwargs,
+            }
+            try:
+                resultado = func(*args, **kwargs)
+            except Exception as error:
+                _registrar_herramienta(nombre, argumentos, inicio, error=error)
+                raise
+            _registrar_herramienta(nombre, argumentos, inicio, resultado=resultado)
+            return resultado
+
+        return envoltura
+
+    return decorador
+
+
 def obtener_ultimo_comprobante() -> str | None:
     global _ULTIMO_COMPROBANTE
     return _ULTIMO_COMPROBANTE
@@ -37,6 +126,7 @@ def limpiar_ultimo_comprobante() -> None:
 # Funciones puras de herramientas
 # ==========================================
 
+@instrumentar_herramienta("resolver_fecha")
 def fn_resolver_fecha(expresion: str) -> str:
     res = _date_resolver.resolver(expresion)
     return json.dumps(
@@ -51,6 +141,7 @@ def fn_resolver_fecha(expresion: str) -> str:
     )
 
 
+@instrumentar_herramienta("buscar_faqs")
 def fn_buscar_faqs(consulta: str, limite: int = 3) -> str:
     resultados = _faq_store.buscar(consulta, limite=limite)
     if not resultados:
@@ -82,13 +173,14 @@ def fn_buscar_faqs(consulta: str, limite: int = 3) -> str:
     return json.dumps({"encontrados": len(items_limpios), "faqs": items_limpios}, ensure_ascii=False)
 
 
+@instrumentar_herramienta("consultar_clima")
 def fn_consultar_clima(fecha_iso: str, mock_mode: str = "") -> str:
     try:
         res_fecha = _date_resolver.resolver(fecha_iso)
         if not res_fecha.es_valida or not res_fecha.fecha_iso:
             return json.dumps({"error": res_fecha.mensaje_error or "Fecha fuera de ventana."}, ensure_ascii=False)
 
-        mock = mock_mode.strip() if mock_mode else None
+        mock = mock_mode.strip() if mock_mode else _EVAL_MOCK_CLIMA.get()
         evidencia = _weather_client.consultar(res_fecha.fecha_iso, mock_mode=mock)
         return json.dumps(
             {
@@ -112,6 +204,7 @@ def fn_consultar_clima(fecha_iso: str, mock_mode: str = "") -> str:
         return json.dumps({"error": f"Fallo al consultar el clima: {exc}"}, ensure_ascii=False)
 
 
+@instrumentar_herramienta("evaluar_condiciones")
 def fn_evaluar_condiciones(id_evidencia: str) -> str:
     evidencia = _weather_client.obtener_evidencia(id_evidencia)
     if not evidencia:
@@ -133,11 +226,13 @@ def fn_evaluar_condiciones(id_evidencia: str) -> str:
     )
 
 
+@instrumentar_herramienta("consultar_disponibilidad")
 def fn_consultar_disponibilidad(fecha_iso: str) -> str:
     disp = _scheduling_service.consultar_disponibilidad(fecha_iso)
     return json.dumps(disp, ensure_ascii=False)
 
 
+@instrumentar_herramienta("agendar_cita")
 def fn_agendar_cita(
     nombre: str,
     fecha_iso: str,
@@ -171,6 +266,7 @@ def fn_agendar_cita(
     )
 
 
+@instrumentar_herramienta("listar_citas")
 def fn_listar_citas(fecha_iso: str) -> str:
     citas = _scheduling_service.listar_citas(fecha_iso)
     return json.dumps({"fecha": fecha_iso, "total": len(citas), "citas": citas}, ensure_ascii=False)
