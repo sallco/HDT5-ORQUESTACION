@@ -1,0 +1,12 @@
+{
+  "name": "parachute-evals",
+  "private": true,
+  "scripts": {
+    "eval": "promptfoo eval -c evals/promptfooconfig.yaml",
+    "eval:ci": "promptfoo eval -c evals/promptfooconfig.yaml --no-cache --output evals/results/promptfoo.json",
+    "eval:view": "promptfoo view evals/results/promptfoo.json"
+  },
+  "devDependencies": {
+    "promptfoo": "0.118.2"
+  }
+}
