@@ -15,9 +15,9 @@ load_dotenv()
 set_tracing_disabled(True)
 
 DEFAULT_MODELS: list[str] = [
-    "openai/gpt-oss-20b",
-    "meta/llama-3.2-90b-vision-instruct",
-    "z-ai/glm-5.3-flash",
+    "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+    "meta/llama-3.3-70b-instruct",
+    "nvidia/llama-3.3-nemotron-super-49b-v1",
 ]
 
 
