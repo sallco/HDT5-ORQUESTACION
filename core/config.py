@@ -51,8 +51,11 @@ class Settings:
             api_key = os.getenv("OPENAI_API_KEY") or os.getenv("NVIDIA_API_KEY")
 
         database_url = os.getenv("DATABASE_URL", "postgresql://parachute:parachutepass@localhost:5432/parachutedb")
-        model = os.getenv("MODEL", "openai/gpt-oss-20b")
-        fallbacks_raw = os.getenv("MODEL_FALLBACKS", "meta/llama-3.2-90b-vision-instruct,z-ai/glm-5.3-flash")
+        model = os.getenv("MODEL", "nvidia/llama-3.3-nemotron-super-49b-v1.5")
+        fallbacks_raw = os.getenv(
+            "MODEL_FALLBACKS",
+            "meta/llama-3.3-70b-instruct,nvidia/llama-3.3-nemotron-super-49b-v1",
+        )
         model_fallbacks = [m.strip() for m in fallbacks_raw.split(",") if m.strip()]
 
         faq_table = os.getenv("FAQ_TABLE", "faqs")
