@@ -1,13 +1,16 @@
-# HDT5 — Orquestación Multiagente (Parachute S.A.)
+# HDT5 & HDT6 — Orquestación Multiagente y Evaluación de Calidad (Evals) (Parachute S.A.)
 
 Sistema Multiagente (MAS) para atención al cliente, evaluación meteorológica y calendarización de saltos en paracaídas para el evento nacional Guatemala 2026.
 
-Implementa **tres arquitecturas de orquestación** sobre una capa compartida de dominio e integraciones:
-1. **Centralizada**: Un orquestador principal que delega en especialistas mediante `as_tool()`.
-2. **Jerárquica**: Un orquestador raíz que coordina supervisores de dominio (`Conocimiento` y `Operaciones`), los cuales a su vez coordinan agentes hoja.
-3. **Descentralizada**: Red de agentes pares que se transfieren el control entre sí mediante `handoff()`, preservando contexto sin un coordinador central.
+Este proyecto abarca dos etapas clave del ciclo de desarrollo de software e inteligencia artificial:
+1. **HDT5 — Orquestación Multiagente**: Implementación, benchmark y análisis comparativo de **tres arquitecturas de orquestación**:
+   - **Centralizada**: Un orquestador principal que delega en especialistas mediante `as_tool()`.
+   - **Jerárquica**: Un orquestador raíz que coordina supervisores de dominio (`Conocimiento` y `Operaciones`), los cuales a su vez coordinan agentes hoja.
+   - **Descentralizada**: Red de agentes pares que se transfieren el control entre sí mediante `handoff()`, preservando contexto sin un coordinador central.
+2. **HDT6 — Evaluación de Calidad con Evals (Promptfoo)**: Marco integral de evaluación automatizada para la puesta en productivo del agente sobre la arquitectura seleccionada (**Centralizada**), validando factualidad RAG, reglas deterministas, latencia y ejecución segura de herramientas.
 
-> 📄 **Informe técnico completo (PDF):** [`docs/Hoja de trabajo 5 - Orquestación.pdf`](docs/Hoja%20de%20trabajo%205%20-%20Orquestaci%C3%B3n.pdf) *(análisis comparativo, métricas y respuestas a preguntas de diseño)*. Ver [previsualización abajo](#5-documentación-e-informe-técnico).
+> 📄 **Informe técnico completo de HDT5 (PDF):** [`docs/Hoja de trabajo 5 - Orquestación.pdf`](docs/Hoja%20de%20trabajo%205%20-%20Orquestaci%C3%B3n.pdf) *(análisis comparativo, métricas y respuestas a preguntas de diseño)*. Ver [previsualización abajo](#6-documentación-e-informe-técnico).
+> 📊 **Reporte de evaluación de HDT6 (Promptfoo):** [`evals/results/promptfoo.json`](evals/results/promptfoo.json) *(100% de tests aprobados)*. Ver [sección de evals abajo](#5-hoja-de-trabajo-6--evals-con-promptfoo-puesta-en-producción).
 
 ---
 
@@ -336,48 +339,124 @@ python main.py benchmark
 ```
 Los resultados observados se almacenan en `data/comparativa_arquitecturas.json`.
 
-### 4.6 Evals con Promptfoo
+### 4.6 Evals con Promptfoo (Resumen Rápido)
 
-La branch `evals` incluye una suite de Promptfoo para la arquitectura centralizada.
-Evalúa las dos capacidades del producto: respuestas de FAQs y calendarización con
-validación meteorológica. La suite usa fixtures `ideal`, `marginal` y `prohibido`
-para que los resultados no dependan de la red ni del estado cambiante de Open-Meteo.
-La evidencia meteorológica es válida durante el turno evaluado y la agenda vuelve a
-validar fecha, evidencia y veredicto antes de guardar una cita.
-
-Requisitos: Node.js 20 o superior, Python con las dependencias del proyecto,
-PostgreSQL cargado y un modelo NVIDIA que haya superado `smoke-test`.
+Para ejecutar rápidamente la suite de evaluación con Promptfoo:
 
 ```bash
+# Instalar dependencias de evaluación
 npm ci
-npm run eval:ci
+
+# Ejecutar suite con intérprete del entorno virtual
+PROMPTFOO_PYTHON=.venv/bin/python npm run eval:ci
+
+# Abrir visor interactivo en navegador
+npm run eval:view
 ```
 
-Promptfoo ejecuta el proveedor Python con el intérprete del sistema por defecto.
-Si las dependencias Python están en un entorno virtual, indique explícitamente
-ese intérprete antes de ejecutar la evaluación:
+El reporte de evaluación se guarda en `evals/results/promptfoo.json`. Para ver la documentación detallada de la metodología, justificación, tipos de evals y resultados, consulta la [Sección 5](#5-hoja-de-trabajo-6--evals-con-promptfoo-puesta-en-producción).
 
+---
+
+## 5. Hoja de Trabajo #6 — Evals con Promptfoo (Puesta en Producción)
+
+Para cerrar el ciclo de desarrollo previo a la puesta en producción en Parachute S.A., se implementó un marco formal de evaluaciones (**Evals**) utilizando **Promptfoo**. Este framework evalúa de manera continua, reproducible y automatizada las dos funcionalidades críticas del sistema sobre la arquitectura seleccionada.
+
+---
+
+### 5.1 Selección y Justificación de la Mejor Arquitectura
+
+Tras el análisis comparativo y el benchmark de la Hoja de Trabajo #5, se seleccionó la **Arquitectura Centralizada (`arch_centralizada.py`)** como la mejor solución técnica para producción por las siguientes razones:
+
+1. **Control Determinista y Prevención de Desvíos**:
+   El orquestador central funge como único punto de contacto y orquesta las herramientas (`consultar_faqs`, `consultar_clima_seguridad`, `gestionar_agenda`) garantizando que los flujos sigan el protocolo operacional sin desviaciones ni alucinaciones de roles.
+2. **Eficiencia en Tokens y Latencia**:
+   La arquitectura jerárquica introduce supervisores intermedios que aumentan la latencia y el consumo de tokens en turnos dobles de delegación. La descentralizada, por su parte, requiere transferencias de estado (`handoff`) propensas a dispersión de contexto. La centralizada ofrece el mejor balance entre velocidad de respuesta y trazabilidad.
+3. **Auditabilidad y Verificación de Herramientas**:
+   Permite registrar e inspeccionar en una sola secuencia de ejecución (`tool_sequence`) cada herramienta ejecutada, facilitando aserciones de seguridad y guardarraíles deterministas en CI/CD.
+
+---
+
+### 5.2 Funcionalidades Evaluadas del Sistema
+
+El agente de Parachute S.A. tiene dos capacidades fundamentales, ambas cubiertas exhaustivamente en la suite de evaluación:
+
+1. **Resolución de Preguntas Frecuentes (FAQs RAG)**:
+   - Consulta sobre el corpus de 120 preguntas institucionales indexadas en PostgreSQL con pgvector (HNSW).
+   - Respuestas con fuentes exactas (`FAQ-ID`), montos de recargos por peso y tiempos de espera médica.
+   - Derivación controlada a soporte humano (`soporte@parachutesa.gt`) cuando la información requerida no existe en la base de conocimiento oficial.
+2. **Calendarización y Gestión de Citas**:
+   - Resolución de fechas relativas a formato ISO (`YYYY-MM-DD`).
+   - Evaluación meteorológica obligatoria (Open-Meteo o fixtures deterministas) sobre la ventana diurna operativa (08:00 a 16:00).
+   - Invariante de seguridad: veto estricto de agendamiento si el veredicto meteorológico es `PROHIBIDO` o la fecha está fuera de la ventana del evento.
+   - Reserva atómica en PostgreSQL con verificación de disponibilidad de cupo (1 cita por hora).
+
+---
+
+### 5.3 Tipos de Evaluaciones Implementadas
+
+La configuración en [`evals/promptfooconfig.yaml`](evals/promptfooconfig.yaml) y [`evals/casos.yaml`](evals/casos.yaml) implementa las cuatro dimensiones de evaluación requeridas:
+
+| Tipo de Eval | Propósito y Criterio | Implementación en Promptfoo |
+| :--- | :--- | :--- |
+| **Factualidad (`factuality`)** | Evalúa que la respuesta del agente no alucine y sea semánticamente fiel a la verdad institucional (e.g. peso máximo estricto de 100 kg, recargo de Q250 entre 90 y 100 kg, espera de 24h tras buceo). | Evaluador basado en LLM vía NVIDIA NIM ([`evals/grader_nvidia.py`](evals/grader_nvidia.py)) con el modelo activo (`z-ai/glm-5.3`). |
+| **Determinísticos (`contains` / `regex`)** | Verificación estricta de códigos de FAQ obligatorios (`FAQ-021`, `FAQ-029`), valores exactos (`100 kg`, `24 horas`, `Q250`), correo oficial (`soporte@parachutesa.gt`), estados de veredicto (`IDEAL`, `MARGINAL`, `PROHIBIDO`) y expresiones de denegación. | Aserciones estándar `contains` y `regex` con soporte insensible a mayúsculas/minúsculas. |
+| **Latencia (`latency`)** | Garantizar que el agente responda dentro de límites operacionales aceptables en un entorno de producción. | Aserción global en `defaultTest`: `latency_ms < 120000` (120 segundos). |
+| **Ejecución de Herramientas (`tool execution`)** | Validar que el agente llame a las herramientas correctas en el orden adecuado, y que **se abstenga** de llamar a herramientas transaccionales ante condiciones adversas. | Aserciones `javascript` sobre `tool_sequence` y `appointment.exito`: <br/>• Flujo positivo: verifica la secuencia completa `['resolver_fecha', 'consultar_clima', 'evaluar_condiciones', 'consultar_disponibilidad', 'agendar_cita']`. <br/>• Guardarraíl negativo: comprueba que `agendar_cita` **no** se invoque ante veredicto `PROHIBIDO` o fecha fuera de ventana. |
+
+---
+
+### 5.4 Aislamiento Transaccional y Reproducibilidad
+
+Para garantizar que la suite de evaluación sea 100% determinista, aislada y ejecutable en CI/CD:
+
+1. **Aislamiento de Citas en Base de Datos ([`evals/isolated_agenda.py`](evals/isolated_agenda.py))**:
+   Cada caso de evaluación corre en su propio esquema temporal en PostgreSQL creando una tabla efímera `eval_citas_<uuid>`. Esto evita que las reservas de un caso de prueba colisionen o bloqueen franjas horarias en casos subsiguientes, y elimina el riesgo de contaminar la tabla de citas de producción.
+2. **Fixtures Meteorológicos Deterministas**:
+   Se emplean modos mock (`ideal`, `marginal`, `prohibido`) en los casos de reserva para evaluar los guardarraíles de seguridad sin depender de la conectividad o fluctuaciones de la API de Open-Meteo.
+3. **Modo Offline de Embeddings**:
+   Se exportan `HF_HUB_OFFLINE=1` y `TRANSFORMERS_OFFLINE=1` en [`evals/run_promptfoo.sh`](evals/run_promptfoo.sh) y [`evals/provider_centralizada.py`](evals/provider_centralizada.py) para utilizar el modelo local predescargado de `SentenceTransformer`, evitando peticiones externas redundantes.
+4. **Cierre Limpio de Conexiones Asíncronas**:
+   El proveedor asíncrono cierra explícitamente el cliente HTTP y los transportes de conexión en bloques `finally`, evitando excepciones de bucle de eventos cerrado (`RuntimeError: Event loop is closed`) en versiones recientes de Python (3.11+ / 3.14).
+
+---
+
+### 5.5 Guía de Ejecución y Reporte de Entrega
+
+#### Prerrequisitos
+- Node.js 20 o superior y npm.
+- Python 3.10+ con entorno virtual (`.venv`) y dependencias instaladas.
+- Base de datos PostgreSQL iniciada con Docker Compose y corpus de FAQs cargado (`python main.py load`).
+- Clave de API de NVIDIA configurada en `.env`.
+
+#### Ejecución de la Suite (CI Mode)
 ```bash
+# 1. Instalar dependencias de evaluación
+npm ci
+
+# 2. Ejecutar la evaluación especificando el intérprete de Python del entorno virtual
 PROMPTFOO_PYTHON=.venv/bin/python npm run eval:ci
 ```
 
-El reporte se genera en `evals/results/promptfoo.json`. Para abrir la vista local:
-
+#### Visualización Interactiva en Navegador
+Para abrir la interfaz web de Promptfoo y explorar las respuestas, prompts, tokens, latencias y detalles de cada aserción:
 ```bash
 npm run eval:view
 ```
 
-Los casos incluyen factualidad, assertions `contains` y `regex`, latencia inferior
-a 120 segundos y verificación de las herramientas realmente ejecutadas. Las reservas
-ideales y marginales deben confirmarse; una reserva prohibida debe ser rechazada sin
-invocar `agendar_cita`. El reporte no debe generarse con el modelo de visión anterior
-ni con un modelo que no haya pasado los cuatro pasos de la prueba de humo.
+#### Archivo de Reporte para la Entrega
+El archivo de reporte generado por Promptfoo ha sido confirmado y versionado en el repositorio:
+- 📄 **Ruta del reporte:** [`evals/results/promptfoo.json`](evals/results/promptfoo.json)
+- **Estado de la evaluación:**
+  - ✅ **Tests aprobados:** **7 / 7 (100% PASS)**
+  - ❌ **Tests fallidos:** **0 (0%)**
+  - ⚠️ **Errores de ejecución:** **0 (0%)**
 
 ---
 
-## 5. Documentación e Informe Técnico
+## 6. Documentación e Informe Técnico (HDT5)
 
-El informe académico formal de la práctica, con las respuestas fundamentadas a las preguntas de diseño, el análisis crítico de desempeño y los diagramas de flujo, se encuentra disponible en formato PDF en la carpeta `docs/`:
+El informe académico formal de la práctica HDT5, con las respuestas fundamentadas a las preguntas de diseño, el análisis crítico de desempeño y los diagramas de flujo, se encuentra disponible en formato PDF en la carpeta `docs/`:
 
 - 📄 **Documento completo:** [docs/Hoja de trabajo 5 - Orquestación.pdf](docs/Hoja%20de%20trabajo%205%20-%20Orquestaci%C3%B3n.pdf)
 
