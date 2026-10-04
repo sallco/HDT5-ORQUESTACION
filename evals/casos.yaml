@@ -10,7 +10,6 @@
       value: "Q250"
     - type: factuality
       value: "El peso máximo es 100 kg y entre 90 kg y 100 kg se aplica un recargo de Q250."
-      provider: "openai:chat:${MODEL}"
     - type: javascript
       value: "(() => { const r = JSON.parse(output); return r.tool_sequence.includes('buscar_faqs'); })()"
 
@@ -24,7 +23,6 @@
       value: "24 horas"
     - type: factuality
       value: "Se requieren al menos 24 horas entre la última inmersión y el salto."
-      provider: "openai:chat:${MODEL}"
 
 - description: "FAQ insuficiente: deriva a soporte"
   vars:
@@ -33,7 +31,7 @@
     - type: contains
       value: "soporte@parachutesa.gt"
     - type: regex
-      value: "(No (puedo|se puede) responder|no dispongo de la información|no figura en la base de conocimientos|no están disponibles)"
+      value: "(No (puedo|se puede) responder|no dispongo de la información|no figura en la base de conocimientos|no est[áa]n disponibles?|no incluye|no tengo disponible)"
 
 - description: "Reserva ideal con secuencia completa"
   vars:

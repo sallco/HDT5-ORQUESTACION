@@ -7,9 +7,12 @@ providers:
   - id: "file://provider_centralizada.py"
     label: "centralizada-nvidia"
 
+evaluateOptions:
+  maxConcurrency: 1
+
 defaultTest:
   options:
-    provider: "openai:chat:${MODEL}"
+    provider: "file://grader_nvidia.py"
   assert:
     - type: javascript
       value: "(() => { const r = JSON.parse(output); return typeof r.latency_ms === 'number' && r.latency_ms < 120000; })()"
