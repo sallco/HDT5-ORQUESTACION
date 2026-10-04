@@ -10,3 +10,5 @@ node_modules/
 .coverage
 .mypy_cache/
 evals/results/*.tmp
+evals/results/evalLastWritten
+
