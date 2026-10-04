@@ -40,15 +40,18 @@ class RegistroHerramienta:
 _TRAZA_HERRAMIENTAS: ContextVar[list[RegistroHerramienta] | None] = ContextVar(
     "traza_herramientas", default=None
 )
+_TRAZA_GLOBAL: list[RegistroHerramienta] = []
 _EVAL_MOCK_CLIMA: ContextVar[str | None] = ContextVar("eval_mock_clima", default=None)
 
 
 def iniciar_traza_herramientas() -> None:
+    global _TRAZA_GLOBAL
+    _TRAZA_GLOBAL = []
     _TRAZA_HERRAMIENTAS.set([])
 
 
 def obtener_traza_herramientas() -> list[dict[str, Any]]:
-    traza = _TRAZA_HERRAMIENTAS.get() or []
+    traza = _TRAZA_GLOBAL
     return [
         {
             "nombre": item.nombre,
@@ -73,10 +76,8 @@ def _registrar_herramienta(
     resultado: Any = None,
     error: Exception | None = None,
 ) -> None:
-    traza = _TRAZA_HERRAMIENTAS.get()
-    if traza is None:
-        return
-    traza.append(
+    global _TRAZA_GLOBAL
+    _TRAZA_GLOBAL.append(
         RegistroHerramienta(
             nombre=nombre,
             argumentos={key: str(value) for key, value in argumentos.items()},
