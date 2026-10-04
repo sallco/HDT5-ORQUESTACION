@@ -31,7 +31,7 @@
     - type: contains
       value: "soporte@parachutesa.gt"
     - type: regex
-      value: "(No (puedo|se puede) responder|no dispongo de la información|no figura en la base de conocimientos|no est[áa]n disponibles?|no incluye|no tengo disponible)"
+      value: "([Nn]o (puedo|se puede) responder|[Nn]o dispongo de|[Nn]o figura en la base de conocimientos|[Nn]o est[áa]n disponibles?|[Nn]o incluye|[Nn]o tengo disponible)"
 
 - description: "Reserva ideal con secuencia completa"
   vars:
@@ -69,7 +69,7 @@
     - type: contains
       value: "PROHIBIDO"
     - type: regex
-      value: "DENEGADA|denegada|rechazada|rechazará|no puedo proceder"
+      value: "DENEGADA|denegada|RECHAZADA|rechazada|rechazará|[Nn]o puedo proceder"
     - type: javascript
       value: "(() => { const r = JSON.parse(output); return !r.tool_sequence.includes('agendar_cita'); })()"
 
