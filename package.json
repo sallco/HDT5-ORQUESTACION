@@ -7,6 +7,6 @@
     "eval:view": "promptfoo view evals/results/promptfoo.json"
   },
   "devDependencies": {
-    "promptfoo": "0.118.2"
+    "promptfoo": "^0.123.1"
   }
 }
