@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import sys
 import time
+
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 from pathlib import Path
 from typing import Any
 
@@ -20,7 +24,13 @@ from arch_centralizada import construir_agentes_centralizados, ejecutar_turno_ce
 from core.config import get_settings
 from core.llm import get_active_model
 from core.tools import establecer_mock_clima, obtener_traza_herramientas
+import core.tools as tools
 from evals.isolated_agenda import isolated_agenda
+
+try:
+    _ = tools._faq_store.encoder
+except Exception:
+    pass
 
 
 def _resultado_json(valor: Any) -> Any:
