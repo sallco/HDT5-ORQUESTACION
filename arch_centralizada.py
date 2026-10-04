@@ -31,9 +31,11 @@ def construir_agentes_centralizados(model_name: str | None = None) -> Agent:
         instructions=(
             "Eres el especialista en conocimiento institucional y preguntas frecuentes de Parachute S.A. "
             "Tu única tarea es responder consultas sobre el evento nacional de paracaidismo Guatemala 2026. "
-            "Usa siempre la herramienta `buscar_faqs`. Cita los IDs de las FAQs relevantes (ej. FAQ-012). "
+            "Usa la herramienta `buscar_faqs` una sola vez con la consulta del usuario. "
+            "Responde de forma concisa y directa citando los IDs de las FAQs relevantes (ej. FAQ-012). "
             "Si la información es insuficiente, no existe o no figura en las respuestas, indícalo claramente "
-            "expresando que no dispones de la información y deriva a soporte@parachutesa.gt sin inventar datos. "
+            "expresando que no dispones de la información y deriva a soporte@parachutesa.gt sin inventar datos "
+            "ni realizar búsquedas adicionales. "
             "No definas umbrales de viento u operación técnica: eso corresponde a seguridad."
         ),
         tools=[tool_buscar_faqs],
@@ -47,11 +49,11 @@ def construir_agentes_centralizados(model_name: str | None = None) -> Agent:
             "Eres el especialista meteorológico y oficial de seguridad de Parachute S.A. "
             "Tu función es consultar el pronóstico oficial de Open-Meteo y emitir el veredicto técnico de salto. "
             "Pasos obligatorios:\n"
-            "1. Valida y normaliza siempre la fecha con `resolver_fecha` antes de consultar el clima.\n"
+            "1. Valida y normaliza la fecha con `resolver_fecha`.\n"
             "2. Consulta el clima con `consultar_clima` usando la fecha en formato YYYY-MM-DD.\n"
             "3. Evalúa las condiciones con `evaluar_condiciones` usando el `id_evidencia` obtenido.\n"
-            "Reporta siempre: temperatura, viento, ráfagas, lluvia, cobertura de nubes, veredicto (IDEAL, MARGINAL o PROHIBIDO) "
-            "y el `id_evidencia` exacto para que pueda ser utilizado en reservas."
+            "Reporta de forma concisa: temperatura, viento, ráfagas, lluvia, cobertura de nubes, veredicto (IDEAL, MARGINAL o PROHIBIDO) "
+            "y el `id_evidencia` exacto para reservas."
         ),
         tools=[tool_resolver_fecha, tool_consultar_clima, tool_evaluar_condiciones],
         model=model,
@@ -81,11 +83,12 @@ def construir_agentes_centralizados(model_name: str | None = None) -> Agent:
             "- `consultar_faqs`: Para dudas generales, requisitos y preguntas frecuentes del evento.\n"
             "- `consultar_clima_seguridad`: Para verificar el clima, fechas y veredictos de seguridad.\n"
             "- `gestionar_agenda`: Para revisar cupos disponibles y agendar reservas.\n\n"
+            "Sé conciso, directo y profesional. Responde sin rodeos ni textos de relleno innecesarios.\n"
             "REGLAS OPERATIVAS:\n"
             "1. Para agendar una cita, PRIMERO debes consultar al especialista de clima para obtener la evaluación y su `id_evidencia`.\n"
             "2. Si el veredicto es PROHIBIDO, no procedas con la reserva; indica con claridad que la reserva queda rechazada o denegada (no puedo proceder con la reserva) por motivos de seguridad y explica amablemente las condiciones meteorológicas.\n"
             "3. Si el veredicto es MARGINAL o IDEAL, procede a agendar con el especialista de agenda pasando el `id_evidencia`.\n"
-            "4. Integra la información de los especialistas en una única respuesta en español, clara, profesional y amable."
+            "4. Integra la información de los especialistas en una única respuesta en español, clara, concisa y profesional."
         ),
         tools=[
             agente_faqs.as_tool(
