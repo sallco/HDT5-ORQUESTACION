@@ -6,7 +6,7 @@ import asyncio
 import sys
 
 from agents import Agent, Runner, function_tool, set_tracing_disabled
-from core.llm import create_model, get_configured_models, set_active_model
+from core.llm import DEFAULT_MODELS, create_model, get_configured_models, set_active_model
 
 
 @function_tool(name_override="sumar_numeros", description_override="Suma dos números enteros.", strict_mode=False)
@@ -117,7 +117,11 @@ async def evaluar_modelo(model_name: str) -> bool:
 
 
 async def ejecutar_prueba_de_humo() -> str:
-    candidatos = get_configured_models()
+    configurados = get_configured_models()
+    candidatos = [modelo for modelo in configurados if modelo in DEFAULT_MODELS]
+    descartados = [modelo for modelo in configurados if modelo not in DEFAULT_MODELS]
+    if descartados:
+        print(f"Modelos descartados por no pertenecer a la lista NVIDIA aprobada: {descartados}")
     print(f"Modelos candidatos configurados: {candidatos}")
 
     for modelo in candidatos:
