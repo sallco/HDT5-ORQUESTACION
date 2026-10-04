@@ -53,11 +53,13 @@ def get_configured_models() -> list[str]:
     fallbacks = [m.strip() for m in fallbacks_raw.split(",") if m.strip()]
 
     candidates: list[str] = []
+    configured = []
     if primary_model and primary_model.strip():
-        candidates.append(primary_model.strip())
-    for fallback in fallbacks:
-        if fallback not in candidates:
-            candidates.append(fallback)
+        configured.append(primary_model.strip())
+    configured.extend(fallback for fallback in fallbacks if fallback not in configured)
+    for modelo in configured:
+        if modelo in DEFAULT_MODELS:
+            candidates.append(modelo)
     for default in DEFAULT_MODELS:
         if default not in candidates:
             candidates.append(default)
