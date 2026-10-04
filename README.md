@@ -368,7 +368,7 @@ npm run eval:view
 ```
 
 Los casos incluyen factualidad, assertions `contains` y `regex`, latencia inferior
-a 30 segundos y verificación de las herramientas realmente ejecutadas. Las reservas
+a 120 segundos y verificación de las herramientas realmente ejecutadas. Las reservas
 ideales y marginales deben confirmarse; una reserva prohibida debe ser rechazada sin
 invocar `agendar_cita`. El reporte no debe generarse con el modelo de visión anterior
 ni con un modelo que no haya pasado los cuatro pasos de la prueba de humo.
