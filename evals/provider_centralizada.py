@@ -20,6 +20,7 @@ from arch_centralizada import construir_agentes_centralizados, ejecutar_turno_ce
 from core.config import get_settings
 from core.llm import get_active_model
 from core.tools import establecer_mock_clima, obtener_traza_herramientas
+from evals.isolated_agenda import isolated_agenda
 
 
 def _resultado_json(valor: Any) -> Any:
@@ -58,7 +59,15 @@ def call_api(prompt: str, options: dict[str, Any], context: dict[str, Any]) -> d
         # Se construye un agente por caso para impedir que el historial de un caso
         # contamine los siguientes casos de Promptfoo.
         agente = construir_agentes_centralizados(get_active_model())
-        respuesta, comprobante = asyncio.run(ejecutar_turno_centralizado(agente, query))
+        async def ejecutar_y_cerrar():
+            try:
+                return await ejecutar_turno_centralizado(agente, query)
+            finally:
+                # Los especialistas comparten el mismo modelo/cliente.
+                await agente.model._client.close()
+
+        with isolated_agenda():
+            respuesta, comprobante = asyncio.run(ejecutar_y_cerrar())
         traza = _normalizar_traza(obtener_traza_herramientas())
         appointment = None
         weather = None
