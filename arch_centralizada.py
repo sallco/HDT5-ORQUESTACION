@@ -32,7 +32,8 @@ def construir_agentes_centralizados(model_name: str | None = None) -> Agent:
             "Eres el especialista en conocimiento institucional y preguntas frecuentes de Parachute S.A. "
             "Tu única tarea es responder consultas sobre el evento nacional de paracaidismo Guatemala 2026. "
             "Usa siempre la herramienta `buscar_faqs`. Cita los IDs de las FAQs relevantes (ej. FAQ-012). "
-            "Si la información es insuficiente o no existe, indícalo claramente sin inventar datos. "
+            "Si la información es insuficiente, no existe o no figura en las respuestas, indícalo claramente "
+            "expresando que no dispones de la información y deriva a soporte@parachutesa.gt sin inventar datos. "
             "No definas umbrales de viento u operación técnica: eso corresponde a seguridad."
         ),
         tools=[tool_buscar_faqs],
@@ -46,7 +47,7 @@ def construir_agentes_centralizados(model_name: str | None = None) -> Agent:
             "Eres el especialista meteorológico y oficial de seguridad de Parachute S.A. "
             "Tu función es consultar el pronóstico oficial de Open-Meteo y emitir el veredicto técnico de salto. "
             "Pasos obligatorios:\n"
-            "1. Si la fecha viene en lenguaje natural, resuélvela con `resolver_fecha`.\n"
+            "1. Valida y normaliza siempre la fecha con `resolver_fecha` antes de consultar el clima.\n"
             "2. Consulta el clima con `consultar_clima` usando la fecha en formato YYYY-MM-DD.\n"
             "3. Evalúa las condiciones con `evaluar_condiciones` usando el `id_evidencia` obtenido.\n"
             "Reporta siempre: temperatura, viento, ráfagas, lluvia, cobertura de nubes, veredicto (IDEAL, MARGINAL o PROHIBIDO) "
@@ -82,7 +83,7 @@ def construir_agentes_centralizados(model_name: str | None = None) -> Agent:
             "- `gestionar_agenda`: Para revisar cupos disponibles y agendar reservas.\n\n"
             "REGLAS OPERATIVAS:\n"
             "1. Para agendar una cita, PRIMERO debes consultar al especialista de clima para obtener la evaluación y su `id_evidencia`.\n"
-            "2. Si el veredicto es PROHIBIDO, no procedas con la reserva y explica amablemente los motivos de seguridad.\n"
+            "2. Si el veredicto es PROHIBIDO, no procedas con la reserva; indica con claridad que la reserva queda rechazada o denegada (no puedo proceder con la reserva) por motivos de seguridad y explica amablemente las condiciones meteorológicas.\n"
             "3. Si el veredicto es MARGINAL o IDEAL, procede a agendar con el especialista de agenda pasando el `id_evidencia`.\n"
             "4. Integra la información de los especialistas en una única respuesta en español, clara, profesional y amable."
         ),
@@ -112,10 +113,16 @@ async def ejecutar_turno_centralizado(
     """Ejecuta un turno en la arquitectura centralizada y retorna (respuesta_llm, comprobante)."""
     limpiar_ultimo_comprobante()
     iniciar_traza_herramientas()
-    resultado = await Runner.run(orquestador, entrada_usuario, max_turns=20)
-    respuesta = resultado.final_output_as(str)
-    comprobante = obtener_ultimo_comprobante()
-    return respuesta, comprobante
+    try:
+        resultado = await Runner.run(orquestador, entrada_usuario, max_turns=20)
+        respuesta = resultado.final_output_as(str)
+        comprobante = obtener_ultimo_comprobante()
+        return respuesta, comprobante
+    finally:
+        client = getattr(getattr(orquestador, "model", None), "openai_client", None)
+        if client and hasattr(client, "close"):
+            await client.close()
+
 
 
 def main() -> None:
