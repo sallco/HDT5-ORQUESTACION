@@ -51,10 +51,10 @@ class Settings:
             api_key = os.getenv("OPENAI_API_KEY") or os.getenv("NVIDIA_API_KEY")
 
         database_url = os.getenv("DATABASE_URL", "postgresql://parachute:parachutepass@localhost:5432/parachutedb")
-        model = os.getenv("MODEL", "nvidia/llama-3.3-nemotron-super-49b-v1.5")
+        model = os.getenv("MODEL", "z-ai/glm-5.3")
         fallbacks_raw = os.getenv(
             "MODEL_FALLBACKS",
-            "meta/llama-3.3-70b-instruct,nvidia/llama-3.3-nemotron-super-49b-v1",
+            "z-ai/glm-5.3-flash",
         )
         model_fallbacks = [m.strip() for m in fallbacks_raw.split(",") if m.strip()]
 

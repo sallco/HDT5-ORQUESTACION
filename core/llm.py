@@ -15,9 +15,8 @@ load_dotenv()
 set_tracing_disabled(True)
 
 DEFAULT_MODELS: list[str] = [
-    "nvidia/llama-3.3-nemotron-super-49b-v1.5",
-    "meta/llama-3.3-70b-instruct",
-    "nvidia/llama-3.3-nemotron-super-49b-v1",
+    "z-ai/glm-5.3",
+    "z-ai/glm-5.3-flash",
 ]
 
 
