@@ -9,4 +9,17 @@ cd "$repo_root"
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 
+if [ "${1:-}" = "view" ]; then
+    shift
+    view_args=()
+    for arg in "$@"; do
+        if [[ "$arg" == *.json ]] && [ -f "$arg" ]; then
+            npx promptfoo import "$arg" --force >/dev/null 2>&1 || true
+        else
+            view_args+=("$arg")
+        fi
+    done
+    exec npx promptfoo view "${view_args[@]}"
+fi
+
 exec npx promptfoo "$@"
