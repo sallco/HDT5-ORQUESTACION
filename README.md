@@ -246,7 +246,7 @@ Configura tus credenciales en el archivo `.env`:
 ```dotenv
 NVIDIA_API_KEY=<tu-clave-de-nvidia>
 OPENAI_BASE_URL=https://integrate.api.nvidia.com/v1
-MODEL=nvidia/llama-3.3-nemotron-super-49b-v1.5
+MODEL=z-ai/glm-5.3
 DATABASE_URL=postgresql://parachute:parachutepass@localhost:5432/parachutedb
 FAQ_TABLE=faqs
 CITAS_TABLE=citas
