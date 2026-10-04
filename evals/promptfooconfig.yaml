@@ -12,6 +12,6 @@ defaultTest:
     provider: "openai:chat:${MODEL}"
   assert:
     - type: javascript
-      value: "const r = JSON.parse(output); return typeof r.latency_ms === 'number' && r.latency_ms < 30000 ? { pass: true, score: 1, reason: `latencia ${r.latency_ms} ms` } : { pass: false, score: 0, reason: 'latencia ausente o mayor a 30 segundos' };"
+      value: "(() => { const r = JSON.parse(output); return typeof r.latency_ms === 'number' && r.latency_ms < 30000 ? { pass: true, score: 1, reason: `latencia ${r.latency_ms} ms` } : { pass: false, score: 0, reason: 'latencia ausente o mayor a 30 segundos' }; })()"
 
 tests: "file://casos.yaml"

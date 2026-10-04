@@ -10,8 +10,9 @@
       value: "Q250"
     - type: factuality
       value: "El peso máximo es 100 kg y entre 90 kg y 100 kg se aplica un recargo de Q250."
+      provider: "openai:chat:${MODEL}"
     - type: javascript
-      value: "const r = JSON.parse(output); return r.tool_sequence.includes('buscar_faqs') ? {pass:true, score:1} : {pass:false, score:0, reason:'No se ejecutó buscar_faqs'};"
+      value: "(() => { const r = JSON.parse(output); return r.tool_sequence.includes('buscar_faqs') ? {pass:true, score:1} : {pass:false, score:0, reason:'No se ejecutó buscar_faqs'}; })()"
 
 - description: "FAQ factual: intervalo después de buceo"
   vars:
@@ -23,6 +24,7 @@
       value: "24 horas"
     - type: factuality
       value: "Se requieren al menos 24 horas entre la última inmersión y el salto."
+      provider: "openai:chat:${MODEL}"
 
 - description: "FAQ insuficiente: deriva a soporte"
   vars:
@@ -31,7 +33,7 @@
     - type: contains
       value: "soporte@parachutesa.gt"
     - type: regex
-      value: "No (puedo|se puede) responder"
+      value: "(No (puedo|se puede) responder|no dispongo de la información)"
 
 - description: "Reserva ideal con secuencia completa"
   vars:
@@ -45,9 +47,9 @@
     - type: regex
       value: "10:00"
     - type: javascript
-      value: "const r = JSON.parse(output); const s = r.tool_sequence; const required = ['resolver_fecha','consultar_clima','evaluar_condiciones','consultar_disponibilidad','agendar_cita']; return required.every(x => s.includes(x)) ? {pass:true,score:1,reason:s.join(' -> ')} : {pass:false,score:0,reason:s.join(' -> ')};"
+      value: "(() => { const r = JSON.parse(output); const s = r.tool_sequence; const required = ['resolver_fecha','consultar_clima','evaluar_condiciones','consultar_disponibilidad','agendar_cita']; return required.every(x => s.includes(x)) ? {pass:true,score:1,reason:s.join(' -> ')} : {pass:false,score:0,reason:s.join(' -> ')}; })()"
     - type: javascript
-      value: "const r = JSON.parse(output); return r.appointment?.exito === true ? {pass:true,score:1} : {pass:false,score:0,reason:'No se confirmó la cita'};"
+      value: "(() => { const r = JSON.parse(output); return r.appointment?.exito === true ? {pass:true,score:1} : {pass:false,score:0,reason:'No se confirmó la cita'}; })()"
 
 - description: "Reserva marginal con advertencia"
   vars:
@@ -59,7 +61,7 @@
     - type: regex
       value: "tándem experimentado"
     - type: javascript
-      value: "const r = JSON.parse(output); return r.appointment?.exito === true ? {pass:true,score:1} : {pass:false,score:0};"
+      value: "(() => { const r = JSON.parse(output); return r.appointment?.exito === true ? {pass:true,score:1} : {pass:false,score:0}; })()"
 
 - description: "Reserva prohibida: no debe ejecutar agendamiento"
   vars:
@@ -71,7 +73,7 @@
     - type: regex
       value: "DENEGADA|denegada|rechazada|rechazará"
     - type: javascript
-      value: "const r = JSON.parse(output); return !r.tool_sequence.includes('agendar_cita') ? {pass:true,score:1} : {pass:false,score:0,reason:'Se ejecutó agendar_cita con clima prohibido'};"
+      value: "(() => { const r = JSON.parse(output); return !r.tool_sequence.includes('agendar_cita') ? {pass:true,score:1} : {pass:false,score:0,reason:'Se ejecutó agendar_cita con clima prohibido'}; })()"
 
 - description: "Fecha fuera de ventana"
   vars:
@@ -80,4 +82,4 @@
     - type: contains
       value: "ventana"
     - type: javascript
-      value: "const r = JSON.parse(output); return !r.tool_sequence.includes('consultar_clima') && !r.tool_sequence.includes('agendar_cita') ? {pass:true,score:1} : {pass:false,score:0,reason:r.tool_sequence.join(' -> ')};"
+      value: "(() => { const r = JSON.parse(output); return !r.tool_sequence.includes('consultar_clima') && !r.tool_sequence.includes('agendar_cita') ? {pass:true,score:1} : {pass:false,score:0,reason:r.tool_sequence.join(' -> ')}; })()"
