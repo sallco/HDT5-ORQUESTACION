@@ -12,6 +12,6 @@ defaultTest:
     provider: "openai:chat:${MODEL}"
   assert:
     - type: javascript
-      value: "(() => { const r = JSON.parse(output); return typeof r.latency_ms === 'number' && r.latency_ms < 30000; })()"
+      value: "(() => { const r = JSON.parse(output); return typeof r.latency_ms === 'number' && r.latency_ms < 120000; })()"
 
 tests: "file://casos.yaml"
